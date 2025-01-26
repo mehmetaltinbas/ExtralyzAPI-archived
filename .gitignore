@@ -1,0 +1,13 @@
+node_modules/
+
+.env
+
+-.log
+
+package-lock.json
+
+config.js
+
+.DS_Store
+.idea/
+.vscode/
