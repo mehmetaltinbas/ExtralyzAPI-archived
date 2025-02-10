@@ -12,7 +12,11 @@ export default (sequelize, DataTypes) => {
                 unique: true,
                 allowNull: false
             },
-            Password: {
+            UserName: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            PasswordHash: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },

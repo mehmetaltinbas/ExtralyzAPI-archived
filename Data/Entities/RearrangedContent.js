@@ -1,19 +1,19 @@
 export default (sequelize, DataTypes) => {
-    const Document = sequelize.define(
-        'Document', 
+    const RearrangedContent = sequelize.define(
+        'RearrangedContent', 
         {
             Id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true
             },
-            FileName: {
+            FormattedContent: {
                 type: DataTypes.STRING
             },
-            FileType : {
+            FormattedType: {
                 type: DataTypes.STRING
             }
         }
     );
-    return Document;
+    return RearrangedContent;
 };

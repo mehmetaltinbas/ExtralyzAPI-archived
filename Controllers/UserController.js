@@ -1,25 +1,36 @@
 import express from 'express';
+import userService from '../Services/UserService.js';
 
 const router = express.Router();
 
-router.get('/document', (req, res) => {
-    res.send(div);
+
+router.get('/test', async function Test(req, res) {
+    userService.test();
+    res.send("hello");
 }); 
 
-router.get('/document', (req, res) => {
-    res.send(div);
-}); 
+router.get('/', async function GetUserById(req, res) {
+    userService.GetUserById(req.body);
+    res.send("hello");
+});
 
-router.get('/document', (req, res) => {
-    res.send(div);
-}); 
+router.post('/signup', async function SignUp(req, res) {
+    const message = await userService.SignUp(req.body);
+    res.send(message);
+});
 
-router.get('/document', (req, res) => {
-    res.send(div);
-}); 
+router.post('/signin', async function SignIn(req, res) {
+    res.send("signin");
+});
 
-router.get('/document', (req, res) => {
-    res.send(div);
-}); 
+router.patch('/update', async function Update(req, res) {
+    res.send("update");
+});
+
+router.delete('/delete', async function Delete(req, res) {
+    const message = await userService.Delete(req.body.id);
+    res.send(message);
+});
+
 
 export default router;

@@ -13,15 +13,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 fs.readdir('./Controllers', (err, files) => {
     for (let i = 0; i < files.length; i++) {
+        const file = files[i].replace('Controller.js', '');
         import(`./Controllers/${files[i]}`)
-            .then(controller => app.use('/api', controller.default))
+            .then(controller => app.use(`/api/${file.toLowerCase()}`, controller.default))
             .catch(err => console.log(err));
     }
 });
 
-sequelize.sync({ force: false })
+sequelize.sync({ force: true })
     .catch((err) => console.log('error occured while database sync: ' + err));
 
 app.listen(port, () => {
-    console.log("Server is running on port: " + port);
+    console.log("API: Server is running on port: " + port);
 });

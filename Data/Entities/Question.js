@@ -1,19 +1,22 @@
 export default (sequelize, DataTypes) => {
-    const Document = sequelize.define(
-        'Document', 
+    const Question = sequelize.define(
+        'Question', 
         {
             Id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
                 autoIncrement: true
             },
-            FileName: {
+            QuestionText: {
                 type: DataTypes.STRING
             },
-            FileType : {
+            QuestionType: {
+                type: DataTypes.STRING
+            },
+            Answer: {
                 type: DataTypes.STRING
             }
         }
     );
-    return Document;
+    return Question;
 };
