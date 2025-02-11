@@ -14,6 +14,7 @@ export default (sequelize, DataTypes) => {
             },
             UserName: {
                 type: DataTypes.STRING,
+                unique: true,
                 allowNull: false
             },
             PasswordHash: {
