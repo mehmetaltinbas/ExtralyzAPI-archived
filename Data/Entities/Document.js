@@ -7,11 +7,17 @@ export default (sequelize, DataTypes) => {
                 primaryKey: true,
                 autoIncrement: true
             },
-            FileName: {
-                type: DataTypes.STRING
+            FilePath: {
+                type: DataTypes.STRING,
+                allowNull: false
             },
-            FileType : {
-                type: DataTypes.STRING
+            FileName: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            FileType: {
+                type: DataTypes.STRING,
+                allowNull: false
             }
         }
     );

@@ -1,6 +1,5 @@
 import express from 'express';
 import userService from '../Services/UserService.js';
-import UserService from '../Services/UserService.js';
 
 const router = express.Router();
 
@@ -27,7 +26,7 @@ router.get('/:id', async function GetUserById(req, res) {
 
 router.patch('/update/:id', async function UpdateUser(req, res) {
     req.body.id = req.params.id;
-    const message = await UserService.UpdateAsync(req.body);
+    const message = await userService.UpdateAsync(req.body);
     res.send(message);
 });
 

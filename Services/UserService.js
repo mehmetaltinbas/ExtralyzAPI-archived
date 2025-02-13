@@ -9,13 +9,14 @@ dotenv.config();
 const SignUpAsync = async (userData) => {
     try {
         const hashedPassword = await bcrypt.hash(userData.password, 10);
-        await models.User.create({
+        const user = await models.User.create({
             Email: userData.email,
             UserName: userData.userName,
             PasswordHash: hashedPassword,
             FirstName: userData.firstName,
             LastName: userData.lastName
         });
+        if (!user) return "Something went wrong.";
         return "User created.";
     } catch (error) {
         return `Error --> ${error}`;
@@ -35,8 +36,16 @@ const SignInAsync = async (userData) => {
     }
 };
 
-const GetCurrentUserAsync = async () => {
-
+const GetCurrentUserAsync = async (authorization) => {
+    try {
+        const token = authorization.split(" ")[1];
+        if (!token) return "No token.";
+        const decoded = jwt.verify(token, process.env.JWT_SIGNATURE);
+        const user = await GetByIdAsync(decoded.userId);
+        return user;
+    } catch (error) {
+        return `Error --> ${error}`;
+    }
 };
 
 const GetAllAsync = async () => {
@@ -51,6 +60,7 @@ const GetAllAsync = async () => {
 const GetByIdAsync = async (id) => {
     try {
         const user = await models.User.findByPk(id);
+        if (!user) return "No user found.";
         return user;
     } catch (error) {
         return `Error --> ${error}`;
@@ -86,4 +96,4 @@ const DeleteAsync = async (id) => {
     }
 };
 
-export default { SignUpAsync, SignInAsync, GetCurrentUserAsync, GetAllAsync, GetByIdAsync, UpdateAsync, DeleteAsync }
+export default { SignUpAsync, SignInAsync, GetCurrentUserAsync, GetAllAsync, GetByIdAsync, UpdateAsync, DeleteAsync };
