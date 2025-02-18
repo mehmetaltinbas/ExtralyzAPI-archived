@@ -1,23 +1,23 @@
 {
-  "development": {
-    "username": "postgres",
-    "password": "postgres",
-    "database": "preparatory",
-    "host": "localhost",
-    "dialect": "postgres"
-  },
-  "test": {
-    "username": "postgres",
-    "password": "postgres",
-    "database": "preparatory",
-    "host": "localhost",
-    "dialect": "postgres"
-  },
-  "production": {
-    "username": "postgres",
-    "password": "postgres",
-    "database": "preparatory",
-    "host": "localhost",
-    "dialect": "postgres"
-  }
+    "development": {
+        "username": "postgres",
+        "password": "postgres",
+        "database": "preparatory",
+        "host": "localhost",
+        "dialect": "postgres"
+    },
+    "test": {
+        "username": "postgres",
+        "password": "postgres",
+        "database": "preparatory",
+        "host": "localhost",
+        "dialect": "postgres"
+    },
+    "production": {
+        "username": "postgres",
+        "password": "postgres",
+        "database": "preparatory",
+        "host": "localhost",
+        "dialect": "postgres"
+    }
 }

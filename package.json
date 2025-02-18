@@ -1,28 +1,32 @@
 {
-  "name": "api",
-  "version": "1.0.0",
-  "main": "API.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Mehmet Altınbaş",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "axios": "^1.7.9",
-    "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.3",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.9",
-    "pg": "^8.13.1",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.5"
-  },
-  "type": "module",
-  "devDependencies": {
-    "prettier": "^3.5.1"
-  }
+    "name": "api",
+    "version": "1.0.0",
+    "main": "API.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Mehmet Altınbaş",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@dqbd/tiktoken": "^1.0.20",
+        "axios": "^1.7.9",
+        "bcrypt": "^5.1.1",
+        "body-parser": "^1.20.3",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "gpt-3-encoder": "^1.1.4",
+        "jsonwebtoken": "^9.0.2",
+        "multer": "^1.4.5-lts.1",
+        "nodemon": "^3.1.9",
+        "openai": "^4.85.1",
+        "pdfjs-dist": "^4.10.38",
+        "pg": "^8.13.1",
+        "pg-hstore": "^2.3.4",
+        "sequelize": "^6.37.5"
+    },
+    "type": "module",
+    "devDependencies": {
+        "prettier": "^3.5.1"
+    }
 }
