@@ -5,11 +5,17 @@ export default (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true,
         },
-        FormattedContent: {
-            type: DataTypes.STRING,
+        Version: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
         },
         FormattedType: {
             type: DataTypes.STRING,
+            allowNull: false,
+        },
+        FormattedContent: {
+            type: DataTypes.TEXT,
+            allowNull: false,
         },
     });
     return RearrangedContent;

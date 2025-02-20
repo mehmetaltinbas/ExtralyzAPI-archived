@@ -9,7 +9,11 @@ const app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+    bodyParser.urlencoded({
+        extended: true,
+    }),
+);
 fs.readdir("./Controllers", (err, files) => {
     for (let i = 0; i < files.length; i++) {
         const file = files[i].replace("Controller.js", "");
@@ -22,7 +26,9 @@ fs.readdir("./Controllers", (err, files) => {
 });
 
 sequelize
-    .sync({ alter: true })
+    .sync({
+        alter: true /*force: true*/,
+    })
     .catch((err) => console.log("error occured while database sync: " + err));
 
 app.listen(port, () => {

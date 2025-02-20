@@ -5,24 +5,20 @@ export default (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true,
         },
-        FilePath: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        ExtractedTextPath: {
-            type: DataTypes.STRING,
-            allowNull: true,
-        },
-        SummarizedTextPath: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
         FileName: {
             type: DataTypes.STRING,
             allowNull: false,
         },
         FileType: {
             type: DataTypes.STRING,
+            allowNull: false,
+        },
+        FilePath: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        FileContent: {
+            type: DataTypes.TEXT,
             allowNull: false,
         },
     });

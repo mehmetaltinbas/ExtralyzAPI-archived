@@ -25,7 +25,9 @@ const SignUpAsync = async (userData) => {
 const SignInAsync = async (userData) => {
     try {
         const user = await models.User.findOne({
-            where: { UserName: userData.userName },
+            where: {
+                UserName: userData.userName,
+            },
         });
         if (!user) return "Invalid user name.";
         const isMatch = await bcrypt.compare(
@@ -33,10 +35,19 @@ const SignInAsync = async (userData) => {
             user.PasswordHash,
         );
         if (!isMatch) return "Invalid password.";
-        const token = jwt.sign({ userId: user.Id }, process.env.JWT_SIGNATURE, {
-            expiresIn: "1h",
-        });
-        return { message: "Signed in.", jwt: token };
+        const token = jwt.sign(
+            {
+                userId: user.Id,
+            },
+            process.env.JWT_SIGNATURE,
+            {
+                expiresIn: "1h",
+            },
+        );
+        return {
+            message: "Signed in.",
+            jwt: token,
+        };
     } catch (error) {
         return `Error --> ${error}`;
     }
@@ -44,12 +55,10 @@ const SignInAsync = async (userData) => {
 
 const GetCurrentUserAsync = async (authorization) => {
     try {
-        console.log("Authorization --> " + authorization);
         const token = authorization.split(" ")[1];
         if (!token) return "No token.";
         const decoded = jwt.verify(token, process.env.JWT_SIGNATURE);
         const user = await GetByIdAsync(decoded.userId);
-        console.log("User --> " + JSON.stringify(user));
         return user;
     } catch (error) {
         return `Error --> ${error}`;
@@ -86,7 +95,11 @@ const UpdateAsync = async (userData) => {
                 FirstName: userData.firstName,
                 LastName: userData.lastName,
             },
-            { where: { Id: userData.id } },
+            {
+                where: {
+                    Id: userData.id,
+                },
+            },
         );
         if (updatedCount === 0) return "No user found.";
         return "User updated.";
@@ -97,7 +110,11 @@ const UpdateAsync = async (userData) => {
 
 const DeleteAsync = async (id) => {
     try {
-        const deletedCount = await models.User.destroy({ where: { Id: id } });
+        const deletedCount = await models.User.destroy({
+            where: {
+                Id: id,
+            },
+        });
         if (deletedCount === 0) return "No user found.";
         return "User deleted.";
     } catch (error) {

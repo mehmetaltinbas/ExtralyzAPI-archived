@@ -1,128 +1,166 @@
 import { models } from "../Data/Sequelize.js";
 import userService from "./UserService.js";
 import openAIService from "../Services/OpenAIService.js";
+import rearrangedContentService from '../Services/RearrangedContentService.js';
 import fs from "fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import dotenv from "dotenv";
 import multerMiddleware from "../Middlewares/MulterMiddleware.js";
 import path from "path";
-import { countTokens, encodeTokens, decodeTokens } from '../Utilities/TokenUtility.js';
+import {
+    countTokens,
+    encodeTokens,
+    decodeTokens,
+} from "../Utilities/TokenUtility.js";
+import {
+    splitTextIntoSentences,
+    splitTextIntoParagraphs,
+} from "../Utilities/TextSplit.js";
+import { groupSentencesBySimilarity } from "../Utilities/SimilarityCheck.js";
 
 dotenv.config();
-
 
 const CompareTokenCountAsync = async (authorization, id) => {
     try {
         const document = await GetByIdAsync(id, authorization);
         if (typeof document == "string") return document;
 
-        const extractedText = fs.readFileSync(document.ExtractedTextPath, "utf-8");
+        const extractedText = fs.readFileSync(
+            document.ExtractedTextPath,
+            "utf-8",
+        );
         const extractedTokenCount = countTokens(extractedText);
 
-        const summarizedText = fs.readFileSync(document.SummarizedTextPath, "utf-8");
+        const summarizedText = fs.readFileSync(
+            document.SummarizedTextPath,
+            "utf-8",
+        );
         const summarizedTokenCount = countTokens(summarizedText);
 
         return {
             extracted: extractedTokenCount,
             summarized: summarizedTokenCount,
-            ratio: Math.floor((summarizedTokenCount/extractedTokenCount)*100),
+            ratio: Math.floor(
+                (summarizedTokenCount / extractedTokenCount) * 100,
+            ),
         };
     } catch (error) {
-        return `CompareTokenCountAsync Error --> ${error}`;
+        return `Error --> ${error}`;
     }
-}
+};
 
-const ExtractTextAsync = async (authorization, id) => {
+const ExtractTextAsync = async (filePath) => {
     try {
-        const document = await GetByIdAsync(id, authorization);
-        if (typeof document == "string") return document;
-
-        const dataBuffer = new Uint8Array(fs.readFileSync(document.FilePath));
-        const pdf = await getDocument({ data: dataBuffer }).promise;
+        const dataBuffer = new Uint8Array(fs.readFileSync(filePath));
+        const pdf = await getDocument({
+            data: dataBuffer,
+        }).promise;
         let extractedText = "";
 
         for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            extractedText += textContent.items.map((item) => item.str).join(" ") + "\n";
+            extractedText +=
+                textContent.items.map((item) => item.str).join(" ") + "\n";
         }
-
-        const textFilePath = path.join(
-            multerMiddleware.uploadsFolderPath,
-            `${id}-Extracted.txt`
-        );
-
-        fs.writeFileSync(textFilePath, extractedText.trim(), "utf-8");
-        await document.update({ ExtractedTextPath: textFilePath });
 
         return extractedText.trim();
     } catch (error) {
-        return `ExtractTextAsync Error --> ${error}`;
+        console.error("❌ Error in ExtractTextAsync: ", error.stack);
+        return {
+            success: false,
+            message: "❌ Error in ExtractTextAsync",
+            error: error.message
+        };
     }
 };
 
-const SplitTextIntoChunksAsync = async (text, maxTokens = process.env.MAX_TOKENS || 1000) => {
+const SplitTextIntoChunksAsync = async (
+    text,
+    maxTokens
+) => {
     try {
-        console.log(text);
-        const totalTokens = countTokens(text);
-        const tokenizedText = encodeTokens(text);
+        const sentences = splitTextIntoSentences(text);
+        const sentencesWithEmbeddings =
+            await openAIService.ChatGetEmbeddingsAsync(sentences);
 
-        const chunkCount = Math.ceil(totalTokens / maxTokens); //determining how many chunks we need
-        const chunkSize = Math.ceil(totalTokens / chunkCount);
-        let chunks = [];
-
-        console.log(`\n Total Tokens: ${totalTokens} | Splitting into ${chunkCount} chunks with chunk size ${chunkSize} \n`);
-        
-        for (let i = 0; i < chunkCount; i++) {
-            let chunkTokens = tokenizedText.slice(i * chunkSize, (i + 1) * chunkSize);
-            let chunkText = decodeTokens(chunkTokens);
-            chunks.push(chunkText);
-        }
-
-        console.log(`\n Chunk --> ${chunks[0]} \n`);
-
-        return chunks;
-    } catch (error) {
-        return `Error --> ${error}`;
-    }
-};
-
-const SummarizeAsync = async (data) => {
-    try {
-        const document = await GetByIdAsync(data.id, data.authorization);
-        if (typeof document == "string") return document;
-
-        const extractedText = fs.readFileSync(document.ExtractedTextPath, "utf-8");
-        
-        const chunks = await SplitTextIntoChunksAsync(extractedText);
-
-        const summaries = await Promise.all(chunks.map(chunk => openAIService.ChatSummarizeAsync({ ratio: data.ratio, text: chunk })));
-        const summary = summaries.join("\n");
-        
-        console.log(`\n ${summary} \n`);
-
-        const textFilePath = path.join(
-            multerMiddleware.uploadsFolderPath,
-            `${data.id}-Summarized.txt`
+        const chunks = groupSentencesBySimilarity(
+            sentencesWithEmbeddings,
+            maxTokens,
         );
 
-        fs.writeFileSync(textFilePath, summary, "utf-8");
-        await document.update({ SummarizedTextPath: textFilePath });
+        console.log(`Generated Chunks --> ${JSON.stringify(chunks, null, 2)}`);
+        return chunks;
+    } catch (error) {
+        console.error("❌ Error in SplitTextIntoChunksAsync: ", error.stack);
+        return {
+            success: false,
+            message: "❌ Error in SplitTextIntoChunksAsync",
+            error: error.message
+        };
+    };
+};
+
+const SummarizeAsync = async (authorization, data) => {
+    try {
+        const document = await GetByIdAsync(data.id, authorization);
+        if (typeof document == "string") return document;
+
+        const extractedText = document.FileContent;
+
+        const rawChunks = await SplitTextIntoChunksAsync(extractedText, 2000);
+        const refined = await Promise.all(
+            rawChunks.map((chunk) =>
+                openAIService.ChatRefineAsync({
+                    text: chunk.text,
+                }),
+            ),
+        );
+        const refinedContent = refined.join("\n");
+
+        const refinedChunks = await SplitTextIntoChunksAsync(refinedContent, 1000);
+        const summaries = await Promise.all(
+            refinedChunks.map((chunk) =>
+                openAIService.ChatSummarizeAsync({
+                    text: chunk.text,
+                    ratio: data.ratio,
+                    number: chunk.number,
+                }),
+            ),
+        );
+        const summary = summaries.join("\n");
+
+        const result = await rearrangedContentService.CreateAsync(
+            authorization,
+            {
+                documentId: document.Id,
+                text: summary,
+                type: document.FileType
+            },
+        );
+        if (result.success === false) return result;
 
         return summary;
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("❌ Error in SummarizeAsync: ", error.stack);
+        return {
+            success: false,
+            message: "❌ Error in SummarizeAsync",
+            error: error.message
+        };
     }
 };
 
 const CreateAsync = async (documentData, authorization) => {
     try {
         const user = await userService.GetCurrentUserAsync(authorization);
+        const extractedText = await ExtractTextAsync(documentData.path);
         const document = await models.Document.create({
             UserId: user.Id,
-            FilePath: documentData.path,
             FileName: documentData.fileName,
             FileType: documentData.mimetype,
+            FilePath: documentData.path,
+            FileContent: extractedText,
         });
         if (!document) return "Document couldn't created.";
         return "Document created.";
@@ -135,7 +173,9 @@ const GetAllAsync = async (authorization) => {
     try {
         const user = await userService.GetCurrentUserAsync(authorization);
         const documents = await models.Document.findAll({
-            where: { UserId: user.Id },
+            where: {
+                UserId: user.Id,
+            },
         });
         if (!documents) return "No document found.";
         return documents;
@@ -174,7 +214,9 @@ const DeleteAsync = async (id, authorization) => {
         const document = await GetByIdAsync(id, authorization);
         if (typeof document == "string") return document;
         const deletedCount = await models.Document.destroy({
-            where: { Id: id },
+            where: {
+                Id: id,
+            },
         });
         if (deletedCount === 0) return "No document found.";
         await fs.promises.unlink(document.FilePath);

@@ -4,26 +4,35 @@ import multerMiddleware from "../Middlewares/MulterMiddleware.js";
 
 const router = express.Router();
 
-
-router.get("/comparetokencount/:id", async function CompareTokenCount(req, res) {
-    const result = await documentService.CompareTokenCountAsync(req.headers.authorization, req.params.id);
-    res.send(`Extracted Token Count --> ${result.extracted} \n Summarized Token Count --> ${result.summarized} \n Summarized is %${result.ratio} of extracted.`);
-});
-
-router.get("/extract/:id", async function Extract(req, res) {
-    const extractedText = await documentService.ExtractTextAsync(
+router.get("/chunks/:id", async function Test(req, res) {
+    const chunks = await documentService.SplitTextIntoChunksAsync(
         req.headers.authorization,
         req.params.id,
     );
-    res.send(extractedText);
+    res.send(chunks);
 });
 
+router.get(
+    "/comparetokencount/:id",
+    async function CompareTokenCount(req, res) {
+        const result = await documentService.CompareTokenCountAsync(
+            req.headers.authorization,
+            req.params.id,
+        );
+        res.send(
+            `Extracted Token Count --> ${result.extracted} \n Summarized Token Count --> ${result.summarized} \n Summarized is %${result.ratio} of extracted.`,
+        );
+    },
+);
+
 router.post("/summarize/:id", async function Summarize(req, res) {
-    const summarizedText = await documentService.SummarizeAsync({
-        authorization: req.headers.authorization,
-        id: req.params.id,
-        ratio: req.body.ratio,
-    });
+    const summarizedText = await documentService.SummarizeAsync(
+        req.headers.authorization,
+        {
+            id: req.params.id,
+            ratio: req.body.ratio,
+        },
+    );
     res.send(summarizedText);
 });
 

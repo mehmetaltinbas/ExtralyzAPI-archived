@@ -5,14 +5,21 @@ export default (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true,
         },
-        QuestionText: {
-            type: DataTypes.STRING,
-        },
         QuestionType: {
             type: DataTypes.STRING,
+            allowNull: false,
+        },
+        QuestionNumber: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        QuestionContent: {
+            type: DataTypes.TEXT,
+            allowNull: false,
         },
         Answer: {
-            type: DataTypes.STRING,
+            type: DataTypes.TEXT,
+            allowNull: false,
         },
     });
     return Question;

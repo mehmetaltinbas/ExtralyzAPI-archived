@@ -28,7 +28,9 @@ const GetAllAsync = async (authorization) => {
             authorization,
         );
         const questions = await models.Question.findAll({
-            where: { DocumentId: document.Id },
+            where: {
+                DocumentId: document.Id,
+            },
         });
         if (!questions) return "No question found.";
         return questions;
@@ -65,7 +67,9 @@ const DeleteAsync = async (id) => {
         const question = await GetByIdAsync(id);
         if (typeof question == "string") return question;
         const deletedCount = await models.Question.destroy({
-            where: { Id: id },
+            where: {
+                Id: id,
+            },
         });
         if (deletedCount === 0) return "No question found.";
         return "Question deleted.";

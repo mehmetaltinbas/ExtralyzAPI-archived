@@ -15,13 +15,9 @@ const encodeTokens = (text, model = "gpt-4o-mini") => {
 
 const decodeTokens = (tokens, model = "gpt-4o-mini") => {
     const encoding = encoding_for_model(model);
-    const decodedTokens = encoding.decode(tokens); 
+    const decodedTokens = encoding.decode(tokens);
     encoding.free();
     return new TextDecoder("utf-8").decode(decodedTokens);
 };
 
-export  { 
-    countTokens,
-    encodeTokens,
-    decodeTokens
-}
+export { countTokens, encodeTokens, decodeTokens };
