@@ -50,14 +50,14 @@ router.post(
     },
 );
 
-router.get("/", async function GetAllDocuments(req, res) {
+router.get("/getall", async function GetAllDocuments(req, res) {
     const documents = await documentService.GetAllAsync(
         req.headers.authorization,
     );
     res.send(documents);
 });
 
-router.get("/:id", async function GetDocumentById(req, res) {
+router.get("/getbyid/:id", async function GetDocumentById(req, res) {
     const document = await documentService.GetByIdAsync(
         req.params.id,
         req.headers.authorization,

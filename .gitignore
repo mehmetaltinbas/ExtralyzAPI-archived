@@ -11,3 +11,7 @@ config.js
 .DS_Store
 .idea/
 .vscode/
+
+config/
+
+.prettierrc

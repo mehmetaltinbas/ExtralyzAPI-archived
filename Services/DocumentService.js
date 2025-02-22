@@ -45,7 +45,12 @@ const CompareTokenCountAsync = async (authorization, id) => {
             ),
         };
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in DocumentService/CompareTokenCountAsync -->  ", error.stack);
+        return {
+            success: false,
+            message: "Error in DocumentService/CompareTokenCountAsync",
+            error: error.message
+        };
     }
 };
 
@@ -66,10 +71,10 @@ const ExtractTextAsync = async (filePath) => {
 
         return extractedText.trim();
     } catch (error) {
-        console.error("❌ Error in ExtractTextAsync: ", error.stack);
+        console.error("Error in DocumentService/ExtractTextAsync -->  ", error.stack);
         return {
             success: false,
-            message: "❌ Error in ExtractTextAsync",
+            message: "Error in DocumentService/ExtractTextAsync",
             error: error.message
         };
     }
@@ -92,10 +97,10 @@ const SplitTextIntoChunksAsync = async (
         console.log(`Generated Chunks --> ${JSON.stringify(chunks, null, 2)}`);
         return chunks;
     } catch (error) {
-        console.error("❌ Error in SplitTextIntoChunksAsync: ", error.stack);
+        console.error("Error in DocumentService/SplitTextIntoChunksAsync -->  ", error.stack);
         return {
             success: false,
-            message: "❌ Error in SplitTextIntoChunksAsync",
+            message: "Error in DocumentService/SplitTextIntoChunksAsync",
             error: error.message
         };
     };
@@ -142,10 +147,10 @@ const SummarizeAsync = async (authorization, data) => {
 
         return summary;
     } catch (error) {
-        console.error("❌ Error in SummarizeAsync: ", error.stack);
+        console.error("Error in DocumentService/SummarizeAsync -->  ", error.stack);
         return {
             success: false,
-            message: "❌ Error in SummarizeAsync",
+            message: "Error in DocumentService/SummarizeAsync",
             error: error.message
         };
     }
@@ -165,7 +170,12 @@ const CreateAsync = async (documentData, authorization) => {
         if (!document) return "Document couldn't created.";
         return "Document created.";
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in DocumentService/CreateAsync -->  ", error.stack);
+        return {
+            success: false,
+            message: "Error in DocumentService/CreateAsync",
+            error: error.message
+        };
     }
 };
 
@@ -180,7 +190,12 @@ const GetAllAsync = async (authorization) => {
         if (!documents) return "No document found.";
         return documents;
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in DocumentService/GetAllAsync -->  ", error.stack);
+        return {
+            success: false,
+            message: "Error in DocumentService/GetAllAsync",
+            error: error.message
+        };
     }
 };
 
@@ -193,7 +208,12 @@ const GetByIdAsync = async (id, authorization) => {
             return "You don't have any document with that Id.";
         return document;
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in DocumentService/GetByIdAsync -->  ", error.stack);
+        return {
+            success: false,
+            message: "Error in DocumentService/GetByIdAsync",
+            error: error.message
+        };
     }
 };
 
@@ -205,7 +225,12 @@ const UpdateAsync = async (documentData, authorization) => {
         document.save();
         return `Document's name updated to: ${document.FileName}.`;
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in DocumentService/UpdateAsync -->  ", error.stack);
+        return {
+            success: false,
+            message: "Error in DocumentService/UpdateAsync",
+            error: error.message
+        };
     }
 };
 
@@ -222,7 +247,12 @@ const DeleteAsync = async (id, authorization) => {
         await fs.promises.unlink(document.FilePath);
         return "Document deleted.";
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in DocumentService/DeleteAsync -->  ", error.stack);
+        return {
+            success: false,
+            message: "Error in DocumentService/DeleteAsync",
+            error: error.message
+        };
     }
 };
 

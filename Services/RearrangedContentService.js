@@ -9,7 +9,7 @@ const CreateAsync = async (authorization, data) => {
         const rearrangedContents = await GetAllAsync(authorization, data.documentId);
         console.log(`\nRearranged contents --> ${JSON.stringify(rearrangedContents, null, 2)}\n`);
         let version = 1;
-        if (typeof rearrangedContents.length !== 0) version = rearrangedContents[rearrangedContents.length - 1].Version + 1;
+        if (rearrangedContents.length > 0) version = rearrangedContents[rearrangedContents.length - 1].Version + 1;
 
         const rearrangedContent = await models.RearrangedContent.create({
             DocumentId: document.Id,
@@ -20,10 +20,10 @@ const CreateAsync = async (authorization, data) => {
         if (!rearrangedContent) return "Rearranged content couldn't created.";
         return "Rearranged content created.";
     } catch (error) {
-        console.error("❌ Error in RearrangedDocument CreateAsync --> ", error.stack);
+        console.error("Error in RearrangedDocumentService/CreateAsync --> ", error.stack);
         return {
             success: false,
-            message: "❌ Error in RearrangedDocument CreateAsync",
+            message: "Error in RearrangedDocumentService/CreateAsync",
             error: error.message
         };
     }
@@ -40,25 +40,61 @@ const GetAllAsync = async (authorization, id) => {
         if (!rearrangedContents) return "No rearranged content found.";
         return rearrangedContents;
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in RearrangedDocumentService/GetAllAsync --> ", error.stack);
+        return {
+            success: false,
+            message: "Error in RearrangedDocumentService/GetAllAsync",
+            error: error.message
+        };
     }
 };
 
-const GetByIdAsync = async (id, authorization) => {
+const GetByVersionAsync = async (authorization, id, version) => {
     try {
         const document = await documentService.GetByIdAsync(
-            questionData.documentId,
+            id,
             authorization,
         );
-        const rearrangedContent = await models.RearrangedContent.findByPk(id);
+        const rearrangedContent = await models.RearrangedContent.findOne({
+            where: { 
+                DocumentId: id,
+                Version: version,
+            },
+        });
         if (!rearrangedContent) return "No rearranged content found.";
         if (!(document.Id == rearrangedContent.DocumentId))
             return "You don't have any rearranged content with that Id.";
-        return question;
+        return rearrangedContent.FormattedContent;
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in RearrangedDocumentService/GetByVersionAsync --> ", error.stack);
+        return {
+            success: false,
+            message: "Error in RearrangedDocumentService/GetByVersionAsync",
+            error: error.message
+        };
     }
 };
+
+const GetByIdAsync = async (authorization, id) => {
+    try {
+        const rearrangedContent = await models.RearrangedContent.findByPk(id);
+        const document = await documentService.GetByIdAsync(
+            rearrangedContent.DocumentId,
+            authorization
+        );
+
+        if (document.success === false || typeof document == "string") return document;
+
+        return rearrangedContent
+    } catch (error) {
+        console.error("Error in RearrangedDocumentService/GetByIdAsync --> ", error.stack);
+        return {
+            success: false,
+            message: "Error in RearrangedDocumentService/GetByIdAsync",
+            error: error.message
+        };
+    }
+}
 
 const UpdateAsync = async () => {
     try {
@@ -79,13 +115,19 @@ const DeleteAsync = async (id) => {
         if (deletedCount === 0) return "No rearranged content found.";
         return "Rearranged content deleted.";
     } catch (error) {
-        return `Error --> ${error}`;
+        console.error("Error in RearrangedDocumentService/DeleteAsync --> ", error.stack);
+        return {
+            success: false,
+            message: "Error in RearrangedDocumentService/DeleteAsync",
+            error: error.message
+        };
     }
 };
 
 export default {
     CreateAsync,
     GetAllAsync,
+    GetByVersionAsync,
     GetByIdAsync,
     UpdateAsync,
     DeleteAsync,

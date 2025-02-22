@@ -16,24 +16,27 @@ const models = {
 };
 
 models.User.hasMany(models.Document, {
-    foreignkey: "DocumentId",
+    foreignKey: "UserId",
+    onDelete: "CASCADE",
 });
 models.Document.belongsTo(models.User, {
-    foreignkey: "UserId",
+    foreignKey: "UserId",
 });
 
 models.Document.hasMany(models.RearrangedContent, {
-    foreignkey: "RearrangedContentId",
+    foreignKey: "DocumentId",
+    onDelete: "CASCADE",
 });
 models.RearrangedContent.belongsTo(models.Document, {
-    foreignkey: "DocumentId",
+    foreignKey: "DocumentId",
 });
 
 models.Document.hasMany(models.Question, {
-    foreignkey: "QuestionId",
+    foreignKey: "DocumentId",
+    onDelete: "CASCADE",
 });
 models.Question.belongsTo(models.Document, {
-    foreignkey: "DocumentId",
+    foreignKey: "DocumentId",
 });
 
 export { sequelize, models };
