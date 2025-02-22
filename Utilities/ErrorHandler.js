@@ -5,13 +5,12 @@ const errorHandler = (fn) => {
         } catch (error) {
             console.error(`Error in ${fn.name} -->`, error.stack);
             return {
-                success: false,
-                message: `Error in ${fn.name}`,
+                isSuccess: false,
+                source: fn.name,
                 error: error.message,
             };
         }
     };
 };
 
-
-export { errorHandler }
+export { errorHandler };

@@ -1,7 +1,7 @@
 import { models } from "../Data/Sequelize.js";
 import userService from "./UserService.js";
 import openAIService from "../Services/OpenAIService.js";
-import rearrangedContentService from '../Services/RearrangedContentService.js';
+import rearrangedContentService from "../Services/RearrangedContentService.js";
 import fs from "fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import dotenv from "dotenv";
@@ -17,45 +17,23 @@ import {
     splitTextIntoParagraphs,
 } from "../Utilities/TextSplit.js";
 import { groupSentencesBySimilarity } from "../Utilities/SimilarityCheck.js";
+import { errorHandler } from "../Utilities/ErrorHandler.js";
+import { error } from "console";
 
 dotenv.config();
 
-const CompareTokenCountAsync = async (authorization, id) => {
-    try {
+const GetTokenCountAsync = errorHandler(
+    async function DocumentService_GetTokenCountAsync(authorization, id) {
         const document = await GetByIdAsync(id, authorization);
         if (typeof document == "string") return document;
 
-        const extractedText = fs.readFileSync(
-            document.ExtractedTextPath,
-            "utf-8",
-        );
-        const extractedTokenCount = countTokens(extractedText);
+        const tokenCount = countTokens(document.FileContent);
+        return tokenCount;
+    },
+);
 
-        const summarizedText = fs.readFileSync(
-            document.SummarizedTextPath,
-            "utf-8",
-        );
-        const summarizedTokenCount = countTokens(summarizedText);
-
-        return {
-            extracted: extractedTokenCount,
-            summarized: summarizedTokenCount,
-            ratio: Math.floor(
-                (summarizedTokenCount / extractedTokenCount) * 100,
-            ),
-        };
-    } catch (error) {
-        console.error("Error in DocumentService/CompareTokenCountAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/CompareTokenCountAsync",
-            error: error.message
-        };
-    }
-};
-
-const ExtractTextAsync = async (filePath) => {
-    try {
+const ExtractTextAsync = errorHandler(
+    async function DocumentService_ExtractTextAsync(filePath) {
         const dataBuffer = new Uint8Array(fs.readFileSync(filePath));
         const pdf = await getDocument({
             data: dataBuffer,
@@ -70,21 +48,11 @@ const ExtractTextAsync = async (filePath) => {
         }
 
         return extractedText.trim();
-    } catch (error) {
-        console.error("Error in DocumentService/ExtractTextAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/ExtractTextAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const SplitTextIntoChunksAsync = async (
-    text,
-    maxTokens
-) => {
-    try {
+const SplitTextIntoChunksAsync = errorHandler(
+    async function DocumentService_SplitTextIntoChunksAsync(text, maxTokens) {
         const sentences = splitTextIntoSentences(text);
         const sentencesWithEmbeddings =
             await openAIService.ChatGetEmbeddingsAsync(sentences);
@@ -96,18 +64,11 @@ const SplitTextIntoChunksAsync = async (
 
         console.log(`Generated Chunks --> ${JSON.stringify(chunks, null, 2)}`);
         return chunks;
-    } catch (error) {
-        console.error("Error in DocumentService/SplitTextIntoChunksAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/SplitTextIntoChunksAsync",
-            error: error.message
-        };
-    };
-};
+    },
+);
 
-const SummarizeAsync = async (authorization, data) => {
-    try {
+const SummarizeAsync = errorHandler(
+    async function DocumentService_SummarizeAsync(authorization, data) {
         const document = await GetByIdAsync(data.id, authorization);
         if (typeof document == "string") return document;
 
@@ -123,7 +84,10 @@ const SummarizeAsync = async (authorization, data) => {
         );
         const refinedContent = refined.join("\n");
 
-        const refinedChunks = await SplitTextIntoChunksAsync(refinedContent, 1000);
+        const refinedChunks = await SplitTextIntoChunksAsync(
+            refinedContent,
+            1000,
+        );
         const summaries = await Promise.all(
             refinedChunks.map((chunk) =>
                 openAIService.ChatSummarizeAsync({
@@ -140,24 +104,17 @@ const SummarizeAsync = async (authorization, data) => {
             {
                 documentId: document.Id,
                 text: summary,
-                type: document.FileType
+                type: document.FileType,
             },
         );
         if (result.success === false) return result;
 
         return summary;
-    } catch (error) {
-        console.error("Error in DocumentService/SummarizeAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/SummarizeAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const CreateAsync = async (documentData, authorization) => {
-    try {
+const CreateAsync = errorHandler(
+    async function DocumentService_CreateAsync(documentData, authorization) {
         const user = await userService.GetCurrentUserAsync(authorization);
         const extractedText = await ExtractTextAsync(documentData.path);
         const document = await models.Document.create({
@@ -169,18 +126,11 @@ const CreateAsync = async (documentData, authorization) => {
         });
         if (!document) return "Document couldn't created.";
         return "Document created.";
-    } catch (error) {
-        console.error("Error in DocumentService/CreateAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/CreateAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const GetAllAsync = async (authorization) => {
-    try {
+const GetAllAsync = errorHandler(
+    async function DocumentService_GetAllAsync(authorization) {
         const user = await userService.GetCurrentUserAsync(authorization);
         const documents = await models.Document.findAll({
             where: {
@@ -189,53 +139,32 @@ const GetAllAsync = async (authorization) => {
         });
         if (!documents) return "No document found.";
         return documents;
-    } catch (error) {
-        console.error("Error in DocumentService/GetAllAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/GetAllAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const GetByIdAsync = async (id, authorization) => {
-    try {
+const GetByIdAsync = errorHandler(
+    async function DocumentService_GetByIdAsync(id, authorization) {
         const user = await userService.GetCurrentUserAsync(authorization);
         const document = await models.Document.findByPk(id);
         if (!document) return "No document found.";
         if (!(user.Id == document.UserId))
             return "You don't have any document with that Id.";
         return document;
-    } catch (error) {
-        console.error("Error in DocumentService/GetByIdAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/GetByIdAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const UpdateAsync = async (documentData, authorization) => {
-    try {
+const UpdateAsync = errorHandler(
+    async function DocumentService_UpdateAsync(documentData, authorization) {
         const document = await GetByIdAsync(documentData.id, authorization);
         if (typeof document == "string") return document;
         document.FileName = documentData.fileName;
         document.save();
         return `Document's name updated to: ${document.FileName}.`;
-    } catch (error) {
-        console.error("Error in DocumentService/UpdateAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/UpdateAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const DeleteAsync = async (id, authorization) => {
-    try {
+const DeleteAsync = errorHandler(
+    async function DocumentService_DeleteAsync(id, authorization) {
         const document = await GetByIdAsync(id, authorization);
         if (typeof document == "string") return document;
         const deletedCount = await models.Document.destroy({
@@ -246,18 +175,11 @@ const DeleteAsync = async (id, authorization) => {
         if (deletedCount === 0) return "No document found.";
         await fs.promises.unlink(document.FilePath);
         return "Document deleted.";
-    } catch (error) {
-        console.error("Error in DocumentService/DeleteAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in DocumentService/DeleteAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
 export default {
-    CompareTokenCountAsync,
+    GetTokenCountAsync,
     ExtractTextAsync,
     SplitTextIntoChunksAsync,
     SummarizeAsync,

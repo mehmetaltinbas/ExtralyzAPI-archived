@@ -9,21 +9,16 @@ router.get("/chunks/:id", async function Test(req, res) {
         req.headers.authorization,
         req.params.id,
     );
-    res.send(chunks);
+    res.json(chunks);
 });
 
-router.get(
-    "/comparetokencount/:id",
-    async function CompareTokenCount(req, res) {
-        const result = await documentService.CompareTokenCountAsync(
-            req.headers.authorization,
-            req.params.id,
-        );
-        res.send(
-            `Extracted Token Count --> ${result.extracted} \n Summarized Token Count --> ${result.summarized} \n Summarized is %${result.ratio} of extracted.`,
-        );
-    },
-);
+router.get("/gettokencount/:id", async function GetTokenCount(req, res) {
+    const result = await documentService.GetTokenCountAsync(
+        req.headers.authorization,
+        req.params.id,
+    );
+    res.json(result);
+});
 
 router.post("/summarize/:id", async function Summarize(req, res) {
     const summarizedText = await documentService.SummarizeAsync(
@@ -33,7 +28,7 @@ router.post("/summarize/:id", async function Summarize(req, res) {
             ratio: req.body.ratio,
         },
     );
-    res.send(summarizedText);
+    res.json(summarizedText);
 });
 
 router.post(
@@ -46,7 +41,7 @@ router.post(
             req.file,
             req.headers.authorization,
         );
-        res.send(message);
+        res.json(message);
     },
 );
 
@@ -54,7 +49,7 @@ router.get("/getall", async function GetAllDocuments(req, res) {
     const documents = await documentService.GetAllAsync(
         req.headers.authorization,
     );
-    res.send(documents);
+    res.json(documents);
 });
 
 router.get("/getbyid/:id", async function GetDocumentById(req, res) {
@@ -62,7 +57,7 @@ router.get("/getbyid/:id", async function GetDocumentById(req, res) {
         req.params.id,
         req.headers.authorization,
     );
-    res.send(document);
+    res.json(document);
 });
 
 router.patch("/update/:id", async function UpdateDocument(req, res) {
@@ -71,7 +66,7 @@ router.patch("/update/:id", async function UpdateDocument(req, res) {
         req.body,
         req.headers.authorization,
     );
-    res.send(message);
+    res.json(message);
 });
 
 router.delete("/delete/:id", async function DeleteDocument(req, res) {
@@ -79,7 +74,7 @@ router.delete("/delete/:id", async function DeleteDocument(req, res) {
         req.params.id,
         req.headers.authorization,
     );
-    res.send(message);
+    res.json(message);
 });
 
 export default router;

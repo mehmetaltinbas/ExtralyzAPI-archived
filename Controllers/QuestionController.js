@@ -7,7 +7,7 @@ router.get("/", async function GetAllQuestions(req, res) {
     const questions = await questionService.GetAllAsync(
         req.headers.authorization,
     );
-    res.send(questions);
+    res.json(questions);
 });
 
 router.get("/:id", async function GetQuestionById(req, res) {
@@ -15,7 +15,7 @@ router.get("/:id", async function GetQuestionById(req, res) {
         req.params.id,
         req.headers.authorization,
     );
-    res.send(question);
+    res.json(question);
 });
 
 export default router;

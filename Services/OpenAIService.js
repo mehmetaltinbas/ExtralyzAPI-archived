@@ -6,6 +6,7 @@ import {
     encodeTokens,
     decodeTokens,
 } from "../Utilities/TokenUtility.js";
+import { errorHandler } from "../Utilities/ErrorHandler.js";
 
 dotenv.config();
 
@@ -13,8 +14,8 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-const ChatGetEmbeddingsAsync = async (sentences) => {
-    try {
+const ChatGetEmbeddingsAsync = errorHandler(
+    async function OpenAIService_ChatGetEmbeddingsAsync(sentences) {
         const response = await openai.embeddings.create({
             model: "text-embedding-ada-002",
             input: sentences,
@@ -23,18 +24,11 @@ const ChatGetEmbeddingsAsync = async (sentences) => {
             text: sentences[index],
             embedding: item.embedding,
         }));
-    } catch (error) {
-        console.error("Error in OpenAIService/ChatGetEmbeddingsAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in OpenAIService/ChatGetEmbeddingsAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const ChatRefineAsync = async (chunk) => {
-    try {
+const ChatRefineAsync = errorHandler(
+    async function OpenAIService_ChatRefineAsync(chunk) {
         const message = `Clean the following extracted text by removing unnecessary sections such as the table of contents, page numbers, author info, acknowledgments, dedications, legal disclaimers, footnotes, references, appendices, repeated headers/footers, and any non-essential metadata. Keep only the meaningful content without modifying or summarizing it.\nIf you find other irrelevant sections, remove them too.\nReturn only the cleaned text with no additional comments or explanations.\nExtracted Text:\n${chunk.text}`;
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
@@ -47,18 +41,11 @@ const ChatRefineAsync = async (chunk) => {
             temperature: 0.7,
         });
         return response.choices[0].message.content;
-    } catch (error) {
-        console.error("Error in OpenAIService/ChatRefineAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in OpenAIService/ChatRefineAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const ChatSummarizeAsync = async (chunk) => {
-    try {
+const ChatSummarizeAsync = errorHandler(
+    async function OpenAIService_ChatSummarizeAsync(chunk) {
         let initialTokenCount = countTokens(chunk.text);
         let targetTokens = Math.round(initialTokenCount * chunk.ratio);
         let errorMargin = 0.075;
@@ -116,7 +103,8 @@ const ChatSummarizeAsync = async (chunk) => {
                     tokenCount: newTokenCount,
                     difference: Math.abs(targetTokens - newTokenCount),
                     ratio:
-                        Math.floor((newTokenCount / initialTokenCount) * 100) / 100,
+                        Math.floor((newTokenCount / initialTokenCount) * 100) /
+                        100,
                 };
                 console.log(
                     `\nChunk ${chunk.number} - Best case Scenario --> ${JSON.stringify(bestCaseScenario, null, 2)}\n`,
@@ -128,7 +116,8 @@ const ChatSummarizeAsync = async (chunk) => {
                 summary: summary,
                 tokenCount: newTokenCount,
                 difference: Math.abs(targetTokens - newTokenCount),
-                ratio: Math.floor((newTokenCount / initialTokenCount) * 100) / 100,
+                ratio:
+                    Math.floor((newTokenCount / initialTokenCount) * 100) / 100,
             };
             scenarios.push(scenario);
 
@@ -139,7 +128,9 @@ const ChatSummarizeAsync = async (chunk) => {
 
         const differences = scenarios.map((scenario) => scenario.difference);
         const bestDifference = Math.min(...differences);
-        console.log(`\nChunk ${chunk.number} - Differences --> ${differences}\n`);
+        console.log(
+            `\nChunk ${chunk.number} - Differences --> ${differences}\n`,
+        );
         const bestCaseScenario = scenarios.find(
             (scenario) => scenario.difference === bestDifference,
         );
@@ -148,28 +139,12 @@ const ChatSummarizeAsync = async (chunk) => {
         );
         summary = bestCaseScenario.summary;
         return summary;
-    } catch (error) {
-        console.error("Error in OpenAIService/ChatSummarizeAsync -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in OpenAIService/ChatSummarizeAsync",
-            error: error.message
-        };
-    }
-};
+    },
+);
 
-const ChatGenerateQuestion = async () => {
-    try {
-        
-    } catch (error) {
-        console.error("Error in OpenAIService/ChatGenerateQuestion -->  ", error.stack);
-        return {
-            success: false,
-            message: "Error in OpenAIService/ChatGenerateQuestion",
-            error: error.message
-        };
-    }
-};
+const ChatGenerateQuestion = errorHandler(
+    async function OpenAIService_ChatGenerateQuestion() {},
+);
 
 export default {
     ChatGetEmbeddingsAsync,

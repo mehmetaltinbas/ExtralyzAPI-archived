@@ -7,10 +7,7 @@ const cosineSimilarity = (vec1, vec2) => {
     return dotProduct / (normA * normB);
 };
 
-const groupSentencesBySimilarity = (
-    sentencesWithEmbeddings,
-    maxTokens,
-) => {
+const groupSentencesBySimilarity = (sentencesWithEmbeddings, maxTokens) => {
     let chunks = [];
     let currentChunk = [];
     let currentTokenCount = 0;

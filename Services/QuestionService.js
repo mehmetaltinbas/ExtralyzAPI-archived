@@ -1,9 +1,10 @@
 import { models } from "../Data/Sequelize.js";
 import userService from "./UserService.js";
 import documentService from "./DocumentService.js";
+import { errorHandler } from "../Utilities/ErrorHandler.js";
 
-const CreateAsync = async (questionData, authorization) => {
-    try {
+const CreateAsync = errorHandler(
+    async function QuestionService_CreateAsync(questionData, authorization) {
         const document = await documentService.GetByIdAsync(
             questionData.documentId,
             authorization,
@@ -16,13 +17,11 @@ const CreateAsync = async (questionData, authorization) => {
         });
         if (!question) return "Document couldn't created.";
         return "Document created.";
-    } catch (error) {
-        return `Error --> ${error}`;
-    }
-};
+    },
+);
 
-const GetAllAsync = async (authorization) => {
-    try {
+const GetAllAsync = errorHandler(
+    async function QuestionService_GetAllAsync(authorization) {
         const document = await documentService.GetByIdAsync(
             questionData.documentId,
             authorization,
@@ -34,13 +33,11 @@ const GetAllAsync = async (authorization) => {
         });
         if (!questions) return "No question found.";
         return questions;
-    } catch (error) {
-        return `Error --> ${error}`;
-    }
-};
+    },
+);
 
-const GetByIdAsync = async (id, authorization) => {
-    try {
+const GetByIdAsync = errorHandler(
+    async function QuestionService_GetByIdAsync(id, authorization) {
         const document = await documentService.GetByIdAsync(
             questionData.documentId,
             authorization,
@@ -50,20 +47,15 @@ const GetByIdAsync = async (id, authorization) => {
         if (!(document.Id == question.DocumentId))
             return "You don't have any question with that Id.";
         return question;
-    } catch (error) {
-        return `Error --> ${error}`;
-    }
-};
+    },
+);
 
-const UpdateAsync = async () => {
-    try {
-    } catch (error) {
-        return `Error --> ${error}`;
-    }
-};
+const UpdateAsync = errorHandler(
+    async function QuestionService_UpdateAsync() {},
+);
 
-const DeleteAsync = async (id) => {
-    try {
+const DeleteAsync = errorHandler(
+    async function QuestionService_DeleteAsync(id) {
         const question = await GetByIdAsync(id);
         if (typeof question == "string") return question;
         const deletedCount = await models.Question.destroy({
@@ -73,10 +65,8 @@ const DeleteAsync = async (id) => {
         });
         if (deletedCount === 0) return "No question found.";
         return "Question deleted.";
-    } catch (error) {
-        return `Error --> ${error}`;
-    }
-};
+    },
+);
 
 export default {
     CreateAsync,
