@@ -18,10 +18,11 @@ fs.readdir("./Controllers", (err, files) => {
     for (let i = 0; i < files.length; i++) {
         const file = files[i].replace("Controller.js", "");
         import(`./Controllers/${files[i]}`)
-            .then((controller) =>
-                app.use(`/api/${file.toLowerCase()}`, controller.default),
-            )
-            .catch((err) => console.log(err));
+            .then((controller) => {
+                console.log(`\nLoaded controller: /api/${file.toLowerCase()}`);
+                app.use(`/api/${file.toLowerCase()}`, controller.default);
+            })
+            .catch((err) => console.error(err));
     }
 });
 

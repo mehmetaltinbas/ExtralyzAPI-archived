@@ -20,23 +20,21 @@ const groupSentencesBySimilarity = (sentencesWithEmbeddings, maxTokens) => {
             chunks.push({
                 text: currentChunk.join(" "),
                 number: chunks.length + 1,
+                tokenCount: countTokens(currentChunk.join(" ")),
             });
             currentChunk = [];
             currentTokenCount = 0;
         }
 
         if (currentChunk.length > 0) {
-            const lastSentenceEmbedding =
-                sentencesWithEmbeddings[i - 1].embedding;
-            const similarity = cosineSimilarity(
-                lastSentenceEmbedding,
-                sentence.embedding,
-            );
+            const lastSentenceEmbedding = sentencesWithEmbeddings[i - 1].embedding;
+            const similarity = cosineSimilarity(lastSentenceEmbedding, sentence.embedding);
             if (similarity < 0.65) {
                 // Anlam farkı varsa yeni chunk başlat
                 chunks.push({
                     text: currentChunk.join(" "),
                     number: chunks.length + 1,
+                    tokenCount: countTokens(currentChunk.join(" ")),
                 });
                 currentChunk = [];
                 currentTokenCount = 0;
@@ -51,6 +49,7 @@ const groupSentencesBySimilarity = (sentencesWithEmbeddings, maxTokens) => {
         chunks.push({
             text: currentChunk.join(" "),
             number: chunks.length + 1,
+            tokenCount: countTokens(currentChunk.join(" ")),
         });
     }
 

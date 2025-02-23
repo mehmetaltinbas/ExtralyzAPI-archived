@@ -31,12 +31,12 @@ models.RearrangedContent.belongsTo(models.Document, {
     foreignKey: "DocumentId",
 });
 
-models.Document.hasMany(models.Question, {
-    foreignKey: "DocumentId",
+models.RearrangedContent.hasMany(models.Question, {
+    foreignKey: "RearrangedContentId",
     onDelete: "CASCADE",
 });
-models.Question.belongsTo(models.Document, {
-    foreignKey: "DocumentId",
+models.Question.belongsTo(models.RearrangedContent, {
+    foreignKey: "RearrangedContentId",
 });
 
-export { sequelize, models };
+export { sequelize, models }
