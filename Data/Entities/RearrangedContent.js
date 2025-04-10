@@ -1,5 +1,5 @@
 export default (sequelize, DataTypes) => {
-    const RearrangedContent = sequelize.define("RearrangedContent", {
+    const RearrangedContent = sequelize.define('RearrangedContent', {
         Id: {
             type: DataTypes.INTEGER,
             primaryKey: true,

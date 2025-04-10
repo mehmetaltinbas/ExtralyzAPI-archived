@@ -1,49 +1,58 @@
-import { models } from "../Data/Sequelize.js";
-import userService from "./UserService.js";
-import openAIService from "../Services/OpenAIService.js";
-import rearrangedContentService from "../Services/RearrangedContentService.js";
-import textProcessingService from "./TextProcessingService.js";
-import fs from "fs";
-import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import dotenv from "dotenv";
-import { countTokens, encodeTokens, decodeTokens } from "../Utilities/TokenUtility.js";
-import { splitTextIntoSentences, splitTextIntoParagraphs } from "../Utilities/TextSplit.js";
-import { groupSentencesBySimilarity } from "../Utilities/SimilarityCheck.js";
-import { errorHandler } from "../Utilities/ErrorHandler.js";
+import { models } from '../Data/Sequelize.js';
+import openAIService from '../Services/OpenAIService.js';
+import rearrangedContentService from '../Services/RearrangedContentService.js';
+import textProcessingService from './TextProcessingService.js';
+import fs from 'fs';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import dotenv from 'dotenv';
+import { countTokens, encodeTokens, decodeTokens } from '../Utilities/TokenUtility.js';
+import { splitTextIntoSentences, splitTextIntoParagraphs } from '../Utilities/TextSplit.js';
+import { groupSentencesBySimilarity } from '../Utilities/SimilarityCheck.js';
+import { errorHandler } from '../Utilities/ErrorHandler.js';
 
 dotenv.config();
 
-const GetTokenCountAsync = errorHandler(async function DocumentService_GetTokenCountAsync(authorization, id) {
-    const document = await GetByIdAsync(id, authorization);
-    if (typeof document == "string") return document;
+const GetTokenCountAsync = errorHandler(
+    async function DocumentService_GetTokenCountAsync(documentId) {
+        const documentResponse = await GetByIdAsync(documentId);
+        if (!documentResponse.isSuccess) return document;
+        const tokenCount = countTokens(documentResponse.FileContent);
+        return {
+            isSuccess: true,
+            message: 'Token count operation is done for given documentId.',
+            tokenCount: tokenCount,
+        };
+    },
+);
 
-    const tokenCount = countTokens(document.FileContent);
-    return tokenCount;
-});
+const ExtractTextAsync = errorHandler(
+    async function DocumentService_ExtractTextAsync(filePath) {
+        const dataBuffer = new Uint8Array(fs.readFileSync(filePath));
+        const pdf = await getDocument({
+            data: dataBuffer,
+        }).promise;
+        let extractedText = '';
 
-const ExtractTextAsync = errorHandler(async function DocumentService_ExtractTextAsync(filePath) {
-    const dataBuffer = new Uint8Array(fs.readFileSync(filePath));
-    const pdf = await getDocument({
-        data: dataBuffer,
-    }).promise;
-    let extractedText = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            extractedText += textContent.items.map((item) => item.str).join(' ') + '\n';
+        }
 
-    for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        extractedText += textContent.items.map((item) => item.str).join(" ") + "\n";
-    }
+        return extractedText.trim();
+    },
+);
 
-    return extractedText.trim();
-});
+const SummarizeAsync = errorHandler(async function DocumentService_SummarizeAsync(data) {
+    const documentResponse = await GetByIdAsync(data.documentId);
+    if (!documentResponse.isSuccess) return documentResponse;
 
-const SummarizeAsync = errorHandler(async function DocumentService_SummarizeAsync(authorization, data) {
-    const document = await GetByIdAsync(data.id, authorization);
-    if (typeof document == "string") return document;
+    const extractedText = documentResponse.FileContent;
 
-    const extractedText = document.FileContent;
-
-    const rawChunks = await textProcessingService.SplitTextIntoChunksAsync(extractedText, 1800);
+    const rawChunks = await textProcessingService.SplitTextIntoChunksAsync(
+        extractedText,
+        1800,
+    );
     if (rawChunks.isSuccess === false) return rawChunks;
     const refined = await Promise.all(
         rawChunks.map((chunk) =>
@@ -52,9 +61,12 @@ const SummarizeAsync = errorHandler(async function DocumentService_SummarizeAsyn
             }),
         ),
     );
-    const refinedContent = refined.join("\n");
+    const refinedContent = refined.join('\n');
 
-    const refinedChunks = await textProcessingService.SplitTextIntoChunksAsync(refinedContent, 1000);
+    const refinedChunks = await textProcessingService.SplitTextIntoChunksAsync(
+        refinedContent,
+        1000,
+    );
     if (refinedChunks.isSuccess === false) return refinedChunks;
 
     const summaries = await Promise.all(
@@ -66,78 +78,89 @@ const SummarizeAsync = errorHandler(async function DocumentService_SummarizeAsyn
             }),
         ),
     );
-    const summary = summaries.join("\n");
+    const summary = summaries.join('\n');
 
-    const result = await rearrangedContentService.CreateAsync(authorization, {
-        documentId: document.Id,
+    const rearrangedContentCreationResponse = await rearrangedContentService.CreateAsync({
+        documentId: documentResponse.Id,
         text: summary,
-        type: document.FileType,
+        type: documentResponse.FileType,
     });
-    if (result.isSuccess === false) return result;
+    if (!rearrangedContentCreationResponse.isSuccess) return rearrangedContentCreationResponse;
 
-    return summary;
+    return { isSuccess: true, message: 'Document summarized.', summary };
 });
 
-const CreateAsync = errorHandler(async function DocumentService_CreateAsync(authorization, documentData) {
-    const user = await userService.GetCurrentUserAsync(authorization);
-    const extractedText = await ExtractTextAsync(documentData.path);
+const CreateAsync = errorHandler(async function DocumentService_CreateAsync(userId, data) {
+    const extractedText = await ExtractTextAsync(data.path);
     const document = await models.Document.create({
-        UserId: user.Id,
-        FileName: documentData.fileName,
-        FileType: documentData.mimetype,
-        FilePath: documentData.path,
+        UserId: userId,
+        FileName: data.fileName,
+        FileType: data.mimetype,
+        FilePath: data.path,
         FileContent: extractedText,
     });
-    if (!document) return "Document couldn't created.";
-    return "Document created.";
+    if (!document) return { isSuccess: false, message: "Document couldn't created." };
+    return { isSuccess: true, message: 'Document created.', document };
 });
 
-const GetAllAsync = errorHandler(async function DocumentService_GetAllAsync(authorization) {
-    const user = await userService.GetCurrentUserAsync(authorization);
-    const documents = await models.Document.findAll({
-        where: {
-            UserId: user.Id,
-        },
-    });
-    if (!documents) return "No document found.";
-    return documents;
-});
+const GetAllByUserIdAsync = errorHandler(
+    async function DocumentService_GetAllByUserIdAsync(userId) {
+        const documents = await models.Document.findAll({
+            where: {
+                UserId: userId,
+            },
+        });
+        if (!documents)
+            return {
+                isSuccess: false,
+                message: 'No document found associated with given userId.',
+            };
+        return { isSuccess: true, message: 'Document(s) found.', documents };
+    },
+);
 
-const GetByIdAsync = errorHandler(async function DocumentService_GetByIdAsync(id, authorization) {
-    const user = await userService.GetCurrentUserAsync(authorization);
-    const document = await models.Document.findByPk(id);
-    if (!document) return "No document found.";
-    if (!(user.Id == document.UserId)) return "You don't have any document with that Id.";
-    return document;
-});
+const GetByIdAsync = errorHandler(
+    async function DocumentService_GetByIdAsync(userId, documentId) {
+        const document = await models.Document.findOne({
+            where: {
+                Id: documentId,
+                UserId: userId,
+            },
+        });
+        if (!document) return { isSuccess: false, message: 'No document found.' };
+        return { isSuccess: true, message: 'Document found.', document };
+    },
+);
 
-const UpdateAsync = errorHandler(async function DocumentService_UpdateAsync(documentData, authorization) {
-    const document = await GetByIdAsync(documentData.id, authorization);
-    if (typeof document == "string") return document;
-    document.FileName = documentData.fileName;
+const UpdateAsync = errorHandler(async function DocumentService_UpdateAsync(userId, data) {
+    const document = await GetByIdAsync(userId, data.documentId);
+    if (!document.isSuccess) return document;
+    document.FileName = data.fileName;
     document.save();
-    return `Document's name updated to: ${document.FileName}.`;
+    return { isSuccess: true, message: 'Document updated.' };
 });
 
-const DeleteAsync = errorHandler(async function DocumentService_DeleteAsync(id, authorization) {
-    const document = await GetByIdAsync(id, authorization);
-    if (typeof document == "string") return document;
-    const deletedCount = await models.Document.destroy({
-        where: {
-            Id: id,
-        },
-    });
-    if (deletedCount === 0) return "No document found.";
-    await fs.promises.unlink(document.FilePath);
-    return "Document deleted.";
-});
+const DeleteAsync = errorHandler(
+    async function DocumentService_DeleteAsync(userId, documentId) {
+        const document = await GetByIdAsync(userId, documentId);
+        if (!document.isSuccess) return document;
+        const deletedCount = await models.Document.destroy({
+            where: {
+                Id: documentId,
+            },
+        });
+        if (deletedCount === 0) return { isSuccess: false, message: 'No document found.' };
+        await fs.promises.unlink(document.FilePath);
+        return { isSuccess: true, message: 'Document deleted.' };
+    },
+);
 
 export default {
     GetTokenCountAsync,
     ExtractTextAsync,
     SummarizeAsync,
     CreateAsync,
-    GetAllAsync,
+    GetAllByUserIdAsync,
     GetByIdAsync,
     UpdateAsync,
     DeleteAsync,

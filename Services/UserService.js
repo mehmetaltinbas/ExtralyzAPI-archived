@@ -1,12 +1,20 @@
-import { models } from "../Data/Sequelize.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import { errorHandler } from "../Utilities/ErrorHandler.js";
+import { models } from '../Data/Sequelize.js';
+import { Op } from 'sequelize';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+import { errorHandler } from '../Utilities/ErrorHandler.js';
 
 dotenv.config();
 
 const SignUpAsync = errorHandler(async function UserService_SignUpAsync(userData) {
+    const existingUser = await models.User.findOne({
+        where: {
+            [Op.or]: [{ Email: userData.email }, { UserName: userData.userName }],
+        },
+    });
+    if (existingUser) return 'Email or username already exists!';
+
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const user = await models.User.create({
         Email: userData.email,
@@ -15,8 +23,8 @@ const SignUpAsync = errorHandler(async function UserService_SignUpAsync(userData
         FirstName: userData.firstName,
         LastName: userData.lastName,
     });
-    if (!user) return "Something went wrong.";
-    return "User created.";
+    if (!user) return 'Database error: User not created.';
+    return 'User created.';
 });
 
 const SignInAsync = errorHandler(async function UserService_SignInAsync(userData) {
@@ -25,30 +33,27 @@ const SignInAsync = errorHandler(async function UserService_SignInAsync(userData
             UserName: userData.userName,
         },
     });
-    if (!user) return "Invalid user name.";
+    if (!user) return { isSuccess: false, message: 'Invalid user name.' };
     const isMatch = await bcrypt.compare(userData.password, user.PasswordHash);
-    if (!isMatch) return "Invalid password.";
+    if (!isMatch) return { isSuccess: false, message: 'Invalid password.' };
     const token = jwt.sign(
         {
             userId: user.Id,
         },
         process.env.JWT_SIGNATURE,
         {
-            expiresIn: "1h",
+            expiresIn: '1h',
         },
     );
     return {
-        message: "Signed in.",
+        isSuccess: true,
+        message: 'Signed in.',
         jwt: token,
     };
 });
 
-const GetCurrentUserAsync = errorHandler(async function UserService_GetCurrentUserAsync(authorization) {
-    const token = authorization.split(" ")[1];
-    if (!token) return "No token.";
-    const decoded = jwt.verify(token, process.env.JWT_SIGNATURE);
-    const user = await GetByIdAsync(decoded.userId);
-    return user;
+const AuthorizeAsync = errorHandler(async function UserService_VerifyUserAsync() {
+    return { isSuccess: true, message: 'Authorized.' };
 });
 
 const GetAllAsync = errorHandler(async function UserService_GetAllAsync() {
@@ -58,7 +63,7 @@ const GetAllAsync = errorHandler(async function UserService_GetAllAsync() {
 
 const GetByIdAsync = errorHandler(async function UserService_GetByIdAsync(id) {
     const user = await models.User.findByPk(id);
-    if (!user) return "No user found.";
+    if (!user) return 'No user found.';
     return user;
 });
 
@@ -78,8 +83,8 @@ const UpdateAsync = errorHandler(async function UserService_UpdateAsync(userData
             },
         },
     );
-    if (updatedCount === 0) return "No user found.";
-    return "User updated.";
+    if (updatedCount === 0) return 'No user found.';
+    return 'User updated.';
 });
 
 const DeleteAsync = errorHandler(async function UserService_DeleteAsync(id) {
@@ -88,14 +93,14 @@ const DeleteAsync = errorHandler(async function UserService_DeleteAsync(id) {
             Id: id,
         },
     });
-    if (deletedCount === 0) return "No user found.";
-    return "User deleted.";
+    if (deletedCount === 0) return 'No user found.';
+    return 'User deleted.';
 });
 
 export default {
     SignUpAsync,
     SignInAsync,
-    GetCurrentUserAsync,
+    AuthorizeAsync,
     GetAllAsync,
     GetByIdAsync,
     UpdateAsync,

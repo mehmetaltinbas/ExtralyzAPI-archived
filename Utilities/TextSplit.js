@@ -4,7 +4,7 @@ const splitTextIntoSentences = (text) => {
 
 const splitTextIntoParagraphs = (text) => {
     return text
-        .split("\n\n")
+        .split('\n\n')
         .map((p) => p.trim())
         .filter((p) => p.length > 0); // Paragraflara ayır
 };

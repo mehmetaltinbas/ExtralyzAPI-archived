@@ -1,12 +1,12 @@
-import { Sequelize, DataTypes } from "sequelize";
-import dbConfig from "../config.js";
+import { Sequelize, DataTypes } from 'sequelize';
+import dbConfig from '../config.js';
 
 const sequelize = new Sequelize(dbConfig);
 
-import Document from "./Entities/Document.js";
-import User from "./Entities/User.js";
-import RearrangedContent from "./Entities/RearrangedContent.js";
-import Question from "./Entities/Question.js";
+import Document from './Entities/Document.js';
+import User from './Entities/User.js';
+import RearrangedContent from './Entities/RearrangedContent.js';
+import Question from './Entities/Question.js';
 
 const models = {
     User: User(sequelize, DataTypes),
@@ -16,27 +16,27 @@ const models = {
 };
 
 models.User.hasMany(models.Document, {
-    foreignKey: "UserId",
-    onDelete: "CASCADE",
+    foreignKey: 'UserId',
+    onDelete: 'CASCADE',
 });
 models.Document.belongsTo(models.User, {
-    foreignKey: "UserId",
+    foreignKey: 'UserId',
 });
 
 models.Document.hasMany(models.RearrangedContent, {
-    foreignKey: "DocumentId",
-    onDelete: "CASCADE",
+    foreignKey: 'DocumentId',
+    onDelete: 'CASCADE',
 });
 models.RearrangedContent.belongsTo(models.Document, {
-    foreignKey: "DocumentId",
+    foreignKey: 'DocumentId',
 });
 
 models.RearrangedContent.hasMany(models.Question, {
-    foreignKey: "RearrangedContentId",
-    onDelete: "CASCADE",
+    foreignKey: 'RearrangedContentId',
+    onDelete: 'CASCADE',
 });
 models.Question.belongsTo(models.RearrangedContent, {
-    foreignKey: "RearrangedContentId",
+    foreignKey: 'RearrangedContentId',
 });
 
-export { sequelize, models }
+export { sequelize, models };

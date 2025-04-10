@@ -1,4 +1,4 @@
-import { countTokens, encodeTokens, decodeTokens } from "./TokenUtility.js";
+import { countTokens, encodeTokens, decodeTokens } from './TokenUtility.js';
 
 const cosineSimilarity = (vec1, vec2) => {
     const dotProduct = vec1.reduce((sum, val, i) => sum + val * vec2[i], 0);
@@ -18,9 +18,9 @@ const groupSentencesBySimilarity = (sentencesWithEmbeddings, maxTokens) => {
 
         if (currentTokenCount + sentenceTokens > maxTokens) {
             chunks.push({
-                text: currentChunk.join(" "),
+                text: currentChunk.join(' '),
                 number: chunks.length + 1,
-                tokenCount: countTokens(currentChunk.join(" ")),
+                tokenCount: countTokens(currentChunk.join(' ')),
             });
             currentChunk = [];
             currentTokenCount = 0;
@@ -32,9 +32,9 @@ const groupSentencesBySimilarity = (sentencesWithEmbeddings, maxTokens) => {
             if (similarity < 0.65) {
                 // Anlam farkı varsa yeni chunk başlat
                 chunks.push({
-                    text: currentChunk.join(" "),
+                    text: currentChunk.join(' '),
                     number: chunks.length + 1,
-                    tokenCount: countTokens(currentChunk.join(" ")),
+                    tokenCount: countTokens(currentChunk.join(' ')),
                 });
                 currentChunk = [];
                 currentTokenCount = 0;
@@ -47,9 +47,9 @@ const groupSentencesBySimilarity = (sentencesWithEmbeddings, maxTokens) => {
 
     if (currentChunk.length > 0) {
         chunks.push({
-            text: currentChunk.join(" "),
+            text: currentChunk.join(' '),
             number: chunks.length + 1,
-            tokenCount: countTokens(currentChunk.join(" ")),
+            tokenCount: countTokens(currentChunk.join(' ')),
         });
     }
 

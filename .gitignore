@@ -15,3 +15,6 @@ config.js
 config/
 
 .prettierrc
+
+Uploads/*
+Uploads/.keep
