@@ -1,7 +1,7 @@
 import express from 'express';
-import documentService from '../Services/DocumentService.js';
-import multerMiddleware from '../Middlewares/MulterMiddleware.js';
-import authMiddleware from '../Middlewares/AuthMiddleware.js';
+import documentService from '../services/DocumentService.js';
+import multerMiddleware from '../middlewares/MulterMiddleware.js';
+import authMiddleware from '../middlewares/AuthMiddleware.js';
 
 const router = express.Router();
 

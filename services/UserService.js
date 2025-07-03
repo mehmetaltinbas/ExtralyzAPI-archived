@@ -1,9 +1,9 @@
-import { models } from '../db/Sequelize';
+import { models } from '../db/Sequelize.js';
 import { Op } from 'sequelize';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { errorHandler } from '../utilities/ErrorHandler';
+import { errorHandler } from '../utilities/ErrorHandler.js';
 
 dotenv.config();
 

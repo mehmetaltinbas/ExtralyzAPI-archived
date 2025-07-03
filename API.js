@@ -5,10 +5,13 @@ import fs from 'fs';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
+import dbConfig from './config.js';
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT;
+
+console.log(dbConfig);
 
 app.use(
     cors({

@@ -1,12 +1,12 @@
-import { Sequelize } from 'sequelize';
+import { Sequelize, DataTypes } from 'sequelize';
 import dbConfig from '../config.js';
 
 const sequelize = new Sequelize(dbConfig);
 
-import  Document from './entities/Document.js';
+import Document from './entities/Document.js';
 import User from './entities/User.js';
 import RearrangedContent from './entities/RearrangedContent.js';
-import initQuestionModel from './entities/Question.js';
+import Question from './entities/Question.js';
 
 const models = {
     User: User(sequelize, DataTypes),
