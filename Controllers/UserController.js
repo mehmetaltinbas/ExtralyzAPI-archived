@@ -4,10 +4,6 @@ import authMiddleware from '../Middlewares/AuthMiddleware.js';
 
 const router = express.Router();
 
-router.get('/test', authMiddleware, async function Test(req, res) {
-    res.json(req.user.userId);
-});
-
 router.post('/signup', async function SignUp(req, res) {
     const message = await userService.SignUpAsync(req.body);
     if (message.isSuccess == false) return res.json(message);

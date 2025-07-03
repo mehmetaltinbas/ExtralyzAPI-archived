@@ -1,7 +1,7 @@
-import { models } from '../Data/Sequelize.js';
+import { models } from '../db/Sequelize.js';
 import userService from './UserService.js';
 import documentService from './DocumentService.js';
-import { errorHandler } from '../Utilities/ErrorHandler.js';
+import { errorHandler } from '../utilities/ErrorHandler.js';
 
 const CreateAsync = errorHandler(
     async function RearrangedContentService_CreateAsync(authorization, data) {

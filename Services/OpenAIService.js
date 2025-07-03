@@ -1,8 +1,8 @@
-import { models } from '../Data/Sequelize.js';
+import { models } from '../db/Sequelize.js';
 import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
-import { countTokens, encodeTokens, decodeTokens } from '../Utilities/TokenUtility.js';
-import { errorHandler } from '../Utilities/ErrorHandler.js';
+import { countTokens, encodeTokens, decodeTokens } from '../utilities/TokenUtility.js';
+import { errorHandler } from '../utilities/ErrorHandler.js';
 
 dotenv.config();
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { sequelize } from './Data/Sequelize.js';
+import { sequelize } from './db/Sequelize';
 import fs from 'fs';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -24,14 +24,19 @@ app.use(
     }),
 );
 fs.readdir('./Controllers', (err, files) => {
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i].replace('Controller.js', '');
-        import(`./Controllers/${files[i]}`)
+    if (err) {
+        console.error('Failed to read Controllers directory:', err);
+        return;
+    }
+
+    for (const file of files) {
+        const route = file.replace('Controller.js', '').toLowerCase();
+        void import(`./Controllers/${file.replace('.ts', '.js')}`)
             .then((controller) => {
-                console.log(`\nLoaded controller: /api/${file.toLowerCase()}`);
-                app.use(`/api/${file.toLowerCase()}`, controller.default);
+                console.log(`\nLoaded controller: /api/${route}`);
+                app.use(`/api/${route}`, controller.default);
             })
-            .catch((err) => console.error(err));
+            .catch((err) => console.error(`Error loading ${file}:`, err));
     }
 });
 

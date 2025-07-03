@@ -1,10 +1,10 @@
-import { models } from '../Data/Sequelize.js';
+import { models } from '../db/Sequelize.js';
 import documentService from './DocumentService.js';
-import openAIService from '../Services/OpenAIService.js';
-import { countTokens, encodeTokens, decodeTokens } from '../Utilities/TokenUtility.js';
-import { splitTextIntoSentences, splitTextIntoParagraphs } from '../Utilities/TextSplit.js';
-import { groupSentencesBySimilarity } from '../Utilities/SimilarityCheck.js';
-import { errorHandler } from '../Utilities/ErrorHandler.js';
+import openAIService from './OpenAIService.js';
+import { countTokens, encodeTokens, decodeTokens } from '../utilities/TokenUtility.js';
+import { splitTextIntoSentences, splitTextIntoParagraphs } from '../utilities/TextSplit.js';
+import { groupSentencesBySimilarity } from '../utilities/SimilarityCheck.js';
+import { errorHandler } from '../utilities/ErrorHandler.js';
 
 const SplitTextIntoChunksAsync = errorHandler(
     async function TextProcessingService_SplitTextIntoChunksAsync(text, maxTokens) {

@@ -34,10 +34,14 @@ router.post(
     },
 );
 
-router.get('/getallbyuserid', authMiddleware, async function GetAllDocumentsByUserId(req, res) {
-    const documentsResponse = await documentService.GetAllByUserIdAsync(req.user.userId);
-    res.json(documentsResponse);
-});
+router.get(
+    '/getallbyuserid',
+    authMiddleware,
+    async function GetAllDocumentsByUserId(req, res) {
+        const documentsResponse = await documentService.GetAllByUserIdAsync(req.user.userId);
+        res.json(documentsResponse);
+    },
+);
 
 router.get('/getbyid/:documentId', authMiddleware, async function GetDocumentById(req, res) {
     const documentResponse = await documentService.GetByIdAsync(
@@ -53,8 +57,8 @@ router.patch('/update/:documentId', authMiddleware, async function UpdateDocumen
     res.json(result);
 });
 
-router.delete('/delete/:id', authMiddleware, async function DeleteDocument(req, res) {
-    const result = await documentService.DeleteAsync(req.params.id, req.headers.authorization);
+router.delete('/delete/:documentId', authMiddleware, async function DeleteDocument(req, res) {
+    const result = await documentService.DeleteAsync(req.user.userId, req.params.documentId);
     res.json(result);
 });
 

@@ -1,10 +1,9 @@
 {
     "name": "api",
     "version": "1.0.0",
+    "type": "module",
     "main": "API.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
+    "scripts": {},
     "author": "Mehmet Altınbaş",
     "license": "ISC",
     "description": "",
@@ -20,18 +19,17 @@
         "gpt-3-encoder": "^1.1.4",
         "jsonwebtoken": "^9.0.2",
         "multer": "^1.4.5-lts.1",
-        "nodemon": "^3.1.9",
         "openai": "^4.85.1",
         "pdfjs-dist": "^4.10.38",
         "pg": "^8.13.1",
         "pg-hstore": "^2.3.4",
         "sequelize": "^6.37.5"
     },
-    "type": "module",
     "devDependencies": {
         "@eslint/js": "^9.24.0",
         "eslint": "^9.24.0",
         "globals": "^16.0.0",
+        "nodemon": "^3.1.9",
         "prettier": "^3.5.1"
     }
 }

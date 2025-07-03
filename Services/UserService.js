@@ -1,46 +1,48 @@
-import { models } from '../Data/Sequelize.js';
+import { models } from '../db/Sequelize';
 import { Op } from 'sequelize';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { errorHandler } from '../Utilities/ErrorHandler.js';
+import { errorHandler } from '../utilities/ErrorHandler';
 
 dotenv.config();
 
-const SignUpAsync = errorHandler(async function UserService_SignUpAsync(userData) {
+const SignUpAsync = errorHandler(async function UserService_SignUpAsync(data) {
     const existingUser = await models.User.findOne({
         where: {
-            [Op.or]: [{ Email: userData.email }, { UserName: userData.userName }],
+            [Op.or]: [{ Email: data.email }, { UserName: data.userName }],
         },
     });
     if (existingUser) return 'Email or username already exists!';
 
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     const user = await models.User.create({
-        Email: userData.email,
-        UserName: userData.userName,
+        Email: data.email,
+        UserName: data.userName,
         PasswordHash: hashedPassword,
-        FirstName: userData.firstName,
-        LastName: userData.lastName,
+        FirstName: data.firstName,
+        LastName: data.lastName,
     });
     if (!user) return 'Database error: User not created.';
     return 'User created.';
 });
 
-const SignInAsync = errorHandler(async function UserService_SignInAsync(userData) {
+const SignInAsync = errorHandler(async function UserService_SignInAsync(data) {
     const user = await models.User.findOne({
         where: {
-            UserName: userData.userName,
+            UserName: data.userName,
         },
     });
     if (!user) return { isSuccess: false, message: 'Invalid user name.' };
-    const isMatch = await bcrypt.compare(userData.password, user.PasswordHash);
+    const isMatch = await bcrypt.compare(data.password, user.PasswordHash);
     if (!isMatch) return { isSuccess: false, message: 'Invalid password.' };
+    const jwtSecret = process.env.JWT_SIGNATURE;
+    if (!jwtSecret) throw new Error('JWT_SIGNATURE is not defined.');
     const token = jwt.sign(
         {
             userId: user.Id,
         },
-        process.env.JWT_SIGNATURE,
+        jwtSecret,
         {
             expiresIn: '1h',
         },
@@ -67,23 +69,23 @@ const GetByIdAsync = errorHandler(async function UserService_GetByIdAsync(id) {
     return user;
 });
 
-const UpdateAsync = errorHandler(async function UserService_UpdateAsync(userData) {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+const UpdateAsync = errorHandler(async function UserService_UpdateAsync(data ) {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
     const updatedCount = await models.User.update(
         {
-            Email: userData.email,
-            UserName: userData.userName,
+            Email: data.email,
+            UserName: data.userName,
             PasswordHash: hashedPassword,
-            FirstName: userData.firstName,
-            LastName: userData.lastName,
+            FirstName: data.firstName,
+            LastName: data.lastName,
         },
         {
             where: {
-                Id: userData.id,
+                Id: data.id,
             },
         },
     );
-    if (updatedCount === 0) return 'No user found.';
+    if (updatedCount[0] == 0) return 'No user found.';
     return 'User updated.';
 });
 

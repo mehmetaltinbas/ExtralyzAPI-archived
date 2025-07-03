@@ -1,5 +1,5 @@
 import express from 'express';
-import rearrangedContentService from '../Services/RearrangedContentService.js';
+import rearrangedContentService from '../services/RearrangedContentService.js';
 
 const router = express.Router();
 

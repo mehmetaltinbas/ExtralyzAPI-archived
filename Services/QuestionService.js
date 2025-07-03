@@ -1,9 +1,9 @@
 import { models } from '../Data/Sequelize.js';
 import userService from './UserService.js';
 import documentService from './DocumentService.js';
-import { errorHandler } from '../Utilities/ErrorHandler.js';
-import rearrangedContentService from '../Services/RearrangedContentService.js';
-import openAIService from '../Services/OpenAIService.js';
+import { errorHandler } from '../utilities/ErrorHandler.js';
+import rearrangedContentService from './RearrangedContentService.js';
+import openAIService from './OpenAIService.js';
 import textProcessingService from './TextProcessingService.js';
 
 const GenerateQuestionsAsync = errorHandler(
