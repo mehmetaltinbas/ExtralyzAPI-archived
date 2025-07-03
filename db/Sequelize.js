@@ -3,20 +3,16 @@ import dbConfig from '../config.js';
 
 const sequelize = new Sequelize(dbConfig);
 
-import  { Document, initDocumentModel } from './Entities/Document.js';
-import { User, initUserModel } from './Entities/User.js';
-import { RearrangedContent, initRearrangedContentModel } from './Entities/RearrangedContent.js';
-import { Question, initQuestionModel } from './Entities/Question.js';
+import  Document from './entities/Document.js';
+import User from './entities/User.js';
+import RearrangedContent from './entities/RearrangedContent.js';
+import initQuestionModel from './entities/Question.js';
 
-initDocumentModel(sequelize);
-initUserModel(sequelize);
-initRearrangedContentModel(sequelize);
-initQuestionModel(sequelize);
 const models = {
-    User,
-    Document,
-    RearrangedContent,
-    Question,
+    User: User(sequelize, DataTypes),
+    Document: Document(sequelize, DataTypes),
+    RearrangedContent: RearrangedContent(sequelize, DataTypes),
+    Question: Question(sequelize, DataTypes),
 };
 
 models.User.hasMany(models.Document, {

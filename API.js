@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { sequelize } from './db/Sequelize';
+import { sequelize } from './db/Sequelize.js';
 import fs from 'fs';
 import cors from 'cors';
 import bodyParser from 'body-parser';
